@@ -65,8 +65,6 @@ if __name__ == "__main__":
         f.write("## Parallel download status\n\n")
         for result in parallel_results:
             f.write(f"- {result['url']}: {result['status']}")
-            if result['status'] == "failed":
-                f.write(f" ({result['error']})")
             f.write("\n")
         f.write(f"\n- Successful downloads: {parallel_successful}\n")
         f.write(f"- Failed downloads: {parallel_failed}\n\n")
@@ -77,21 +75,10 @@ if __name__ == "__main__":
 
     metadata_rows = []
 
-    for url in urls:
-        try:
-            metadata = get_video_metadata(url)
-            metadata_rows.append(metadata)
-        except Exception as e:
-            print(f"\n*** Error extracting metadata for {url}: {e}\n")
-            # Add a failed metadata entry
-            metadata_rows.append({
-                "title": "N/A",
-                "duration": None,
-                "uploader": "N/A",
-                "view_count": None,
-                "ext": "N/A",
-                "url": url
-            })
+    for url in urls:        
+        metadata = get_video_metadata(url)
+        metadata_rows.append(metadata)
+
 
     # create the new CSV of metadata after the loop finishes
     with open("data/video_metadata.csv", "w", newline="") as file:

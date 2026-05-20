@@ -8,11 +8,26 @@ def download_video(url):
 
     # Save inside videos/ using the video title as the filename
     ydl_options = {
-        "outtmpl": "videos/%(title)s.%(ext)s"
+        "outtmpl": "videos/%(title)s.%(ext)s",
+        "socket_timeout": 30,
     }
 
-    with yt_dlp.YoutubeDL(ydl_options) as ydl:
-        ydl.download([url])
+    try:
+        with yt_dlp.YoutubeDL(ydl_options) as ydl:
+            ydl.download([url])
+        
+        return {
+            "url": url,
+            "status": "success",
+            "error": "",
+        }
+    except Exception as e:
+        print(f"Error downloading {url}: {e}")
+        return {
+            "url": url,
+            "status": "failed",
+            "error": str(e),
+        }
 
 # a function that reads the URLs from the CSV file
 # it skips the header and returns a list of URLs
@@ -27,3 +42,42 @@ def read_urls_from_csv(filename):
             url = line.strip().split(",")[1]
             urls.append(url)
     return urls
+
+# A funtion that downloads video metadata from a given URL.
+# The metadata should include the following: 
+# {
+#    "title": "...",
+#    "duration": 10,
+#    "uploader": "...",
+#    "view_count": 12345,
+#    "ext": "mp4",
+#    "url": "..."
+# }
+def get_video_metadata(url):
+    ydl_options = {
+        "quiet": True,
+        "skip_download": True,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_options) as ydl:
+            info = ydl.extract_info(url, download=False)
+            metadata = {
+                "title": info.get("title"),
+                "duration": info.get("duration"),
+                "uploader": info.get("uploader"),
+                "view_count": info.get("view_count"),
+                "ext": info.get("ext"),
+                "url": url
+            }
+            return metadata
+    except Exception as e:
+        print(f"Error extracting metadata for {url}: {e}")
+        return {
+            "title": "N/A",
+            "duration": None,
+            "uploader": "N/A",
+            "view_count": None,
+            "ext": "N/A",
+            "url": url
+        }
